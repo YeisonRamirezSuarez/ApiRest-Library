@@ -6,15 +6,18 @@ require_once '../model/UsuarioDao.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
 $id = $_REQUEST['id'] ?? null;
+$correo = $_REQUEST['email'] ?? null;
 $update = $_REQUEST['update'] ?? null;
 $delete = $_REQUEST['delete'] ?? null;
 
 
-if ($method == 'GET' && !$id) index();
+if ($method == 'GET' && !$id && !$correo) index();
 
 if ($method == 'GET' && $id) showById($id);
 
-if ($method == 'POST' && !$id) Create();
+if ($method == 'GET' && $correo) showByEmailUser($correo);
+
+if ($method == 'POST' && !$id && !$correo) Create();
 
 if ($method == 'POST' && $delete && $id) Delete($id);
 
@@ -32,9 +35,8 @@ function index()
 {
     $dao = new UsuarioDao();
     $usuarios = $dao->GetAll();
-    $result = ['data' => []];
     foreach ($usuarios as $usuario) {
-        $result['data'][] = [
+        $result[] = [
             'id' => $usuario->getId(),
             'name' => $usuario->getNombre(),
             'email' => $usuario->getCorreo(),
@@ -53,7 +55,7 @@ function showById($id)
     $dao = new UsuarioDao();
     $usuario = $dao->GetById($id);
     if ($usuario) {
-        echo json_encode(['data' => [
+        echo json_encode([
             'id' => $usuario->getId(),
             'name' => $usuario->getNombre(),
             'email' => $usuario->getCorreo(),
@@ -61,7 +63,30 @@ function showById($id)
             'address' => $usuario->getDireccion(),
             'password' => $usuario->getPassword(),
             'rol' => $usuario->getRol()
-        ]]);
+        ]);
+
+        http_response_code(201);
+        exit;
+    }
+    echo json_encode(['error' => 'La persona a consultar no se encuentra en la base de datos.']);
+    http_response_code(404);
+    exit;
+}
+
+function showByEmailUser($correo)
+{
+    $dao = new UsuarioDao();
+    $usuario = $dao->GetExistUser($correo);
+    if ($usuario) {
+        echo json_encode([
+            'id' => $usuario->getId(),
+            'name' => $usuario->getNombre(),
+            'email' => $usuario->getCorreo(),
+            'phone' => $usuario->getTelefono(),
+            'address' => $usuario->getDireccion(),
+            'password' => $usuario->getPassword(),
+            'rol' => $usuario->getRol()
+        ]);
 
         http_response_code(201);
         exit;

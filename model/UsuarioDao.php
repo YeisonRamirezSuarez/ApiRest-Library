@@ -81,4 +81,20 @@ class UsuarioDao{
 
         return $sentencia == 1;
     }
+
+    public function Login(Usuario $usuario){
+        include 'conexion.php';
+        
+        $sentencia=$conexion->query("SELECT Rol_Usuario FROM usuario WHERE Correo_Electronico='{$usuario->getCorreo()}' AND Contrasena_Usuario= '{$usuario->getPassword()}' limit 1");
+        while($Res_sentencia = mysqli_fetch_array($sentencia)){
+            $usuarios = new Usuario($Res_sentencia['_id'],$Res_sentencia['Nombre_Usuario'],$Res_sentencia['Correo_Electronico'],
+            $Res_sentencia['Telefono_Usuario'],$Res_sentencia['Direccion_Usuario'],$Res_sentencia['Contrasena_Usuario'],$Res_sentencia['Rol_Usuario']);
+            $result[] = $usuarios;
+        }
+
+        $sentencia->close();
+        $conexion->close(); 
+        return $result;
+    }
+
 }
